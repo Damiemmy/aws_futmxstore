@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Faculty,Department,Level,Semester,Course
+from .models import Faculty,Department,Level,Semester,Course,Material
 
 
 class FacultySerializer(serializers.ModelSerializer):
@@ -74,4 +74,39 @@ class CourseSerializer(serializers.ModelSerializer):
             "title",
             "semester",
             "semester_name",
+        ]
+
+'''
+class MaterialUploaderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "name"]
+        read_only_fields = ["id", "name"]
+'''
+
+class MaterialSerializer(serializers.ModelSerializer):
+    '''
+    uploaded_by = MaterialUploaderSerializer(read_only=True)
+    '''
+    uploaded_by = serializers.ReadOnlyField(
+        source="uploaded_by.id"
+    )
+
+    class Meta:
+        model = Material
+        fields = [
+            "id",
+            "course",
+            "title",
+            "description",
+            "file",
+            "uploaded_by",
+            "created_at",
+            "updated_at",
+        ]
+
+        read_only_fields = [
+            "uploaded_by",
+            "created_at",
+            "updated_at",
         ]

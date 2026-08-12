@@ -63,6 +63,7 @@
 
 
 from django.db import models
+from django.conf import settings
 
 
 class Faculty(models.Model):
@@ -194,6 +195,14 @@ class Material(models.Model):
 
     file = models.FileField(
         upload_to="materials/",
+    )
+    
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="uploaded_materials",
+        null=True,
+        blank=True,
     )
 
     created_at = models.DateTimeField(
