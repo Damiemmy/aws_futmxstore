@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
 
@@ -146,5 +147,11 @@ REST_FRAMEWORK={
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter'
     ]
+}
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 AUTH_USER_MODEL='authentication.User'

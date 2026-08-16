@@ -85,11 +85,14 @@ class MaterialUploaderSerializer(serializers.ModelSerializer):
 '''
 
 class MaterialSerializer(serializers.ModelSerializer):
-    '''
-    uploaded_by = MaterialUploaderSerializer(read_only=True)
-    '''
+
     uploaded_by = serializers.ReadOnlyField(
         source="uploaded_by.id"
+    )
+
+    course_code = serializers.CharField(
+        source="course.code",
+        read_only=True,
     )
 
     class Meta:
@@ -97,6 +100,7 @@ class MaterialSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "course",
+            "course_code",
             "title",
             "description",
             "file",
@@ -106,6 +110,8 @@ class MaterialSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = [
+            "id",
+            "course_code",
             "uploaded_by",
             "created_at",
             "updated_at",

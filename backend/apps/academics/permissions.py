@@ -9,7 +9,7 @@ class CanUploadMaterial(BasePermission):
             return False
 
         return request.user.user_roles.filter(
-            role__name__in=["Course Rep", "Lecturer"],
+            role__name__in=["Course Representative", "Lecturer"],
             is_active=True,
             is_approved=True,
         ).exists()

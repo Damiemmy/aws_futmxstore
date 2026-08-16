@@ -5,7 +5,10 @@ from .views import (
     LevelListView,
     SemesterListView,
     CourseListView,
-    MaterialCreateView
+    MaterialCreateView,
+    MaterialListView,
+    MaterialDetailView,
+    MaterialDownloadView,
 )
 
 urlpatterns = [
@@ -14,5 +17,8 @@ urlpatterns = [
     path("levels/",LevelListView.as_view(),name='level-list'),
     path("semesters/",SemesterListView.as_view(),name='semester-list'),
     path("courses/",CourseListView.as_view(),name='course-list'),
-    path("materials/",MaterialCreateView.as_view(),name="material-create",),
+    path("materials/create/",MaterialCreateView.as_view(),name="material-create",),
+    path("materials/",MaterialListView.as_view(),name="material-list",),
+    path("materials/<int:pk>/",MaterialDetailView.as_view(),name="material-detail",),
+    path("materials/<int:pk>/download/",MaterialDownloadView.as_view(),name="material-download",),
 ]
