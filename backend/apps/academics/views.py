@@ -25,6 +25,7 @@ from .selectors import get_material
 from rest_framework.response import Response
 from rest_framework import status
 from .services import download_material
+from .pagination import MaterialPagination
 
 
 class FacultyListView(ListAPIView):
@@ -110,6 +111,7 @@ class MaterialListView(ListAPIView):
 class MaterialListView(ListAPIView):
 
     serializer_class = MaterialSerializer
+    pagination_class = MaterialPagination
 
     def get_queryset(self):
         course_id = self.request.query_params.get("course")
@@ -138,7 +140,7 @@ class MaterialDetailView(RetrieveAPIView):
 
 class MaterialDownloadView(APIView):
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
 
