@@ -91,7 +91,7 @@ class Department(models.Model):
         max_length=150,
     )
 
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
 
     class Meta:
         constraints = [
