@@ -8,6 +8,128 @@ import { academicService } from '../features/academics/services'
 import { materialService } from '../features/materials/services'
 import { getApiMessage } from '../api/client'
 import type { Course } from '../types/api'
-const schema = z.object({ course: z.coerce.number().positive('Choose a course.'), title: z.string().min(2, 'Add a title.'), description: z.string(), file: z.custom<FileList>().refine((files) => files?.length === 1, 'Choose a file.') })
+const schema = z.object({
+  course: z.coerce.number().positive('Choose a course.'),
+  title: z.string().min(2, 'Add a title.'),
+  description: z.string(),
+  file: z.custom<FileList>().refine((files) => files?.length === 1, 'Choose a file.'),
+})
 type FormValues = z.infer<typeof schema>
-export function Upload() { const [courses, setCourses] = useState<Course[]>([]); const [error, setError] = useState(''); const navigate = useNavigate(); const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema) }); useEffect(() => { void academicService.courses().then(setCourses).catch((e: unknown) => setError(getApiMessage(e, 'Courses could not be loaded.'))) }, []); return <div className="min-h-screen bg-cream px-5 py-10"><div className="mx-auto max-w-2xl"><Link to="/" className="mb-12 inline-flex items-center gap-2 text-sm font-bold text-ink/55"><ArrowLeft size={16} /> Back to library</Link><div className="rounded-3xl border border-ink/10 bg-paper p-7 shadow-soft sm:p-12"><div className="mb-10 flex items-start justify-between"><div><p className="mb-3 text-sm font-bold uppercase tracking-wider text-coral">Share knowledge</p><h1 className="font-display text-5xl">Upload material.</h1></div><UploadCloud className="text-coral" size={32} /></div><form className="space-y-5" onSubmit={handleSubmit(async (values) => { try { await materialService.upload({ course: values.course, title: values.title, description: values.description, file: values.file[0] }); navigate('/') } catch (e) { setError(getApiMessage(e, 'Upload failed. Please try again.')) } })}><label className="block text-sm font-semibold">Course<select {...register('course')} className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3"><option value="">Choose a course</option>{courses.map((course) => <option value={course.id} key={course.id}>{course.code} · {course.title}</option>)}</select>{errors.course && <span className="mt-1 block text-xs font-normal text-coral">{errors.course.message}</span>}</label><label className="block text-sm font-semibold">Title<input {...register('title')} className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3 outline-none focus:border-coral" placeholder="e.g. Week 4 lecture notes" />{errors.title && <span className="mt-1 block text-xs font-normal text-coral">{errors.title.message}</span>}</label><label className="block text-sm font-semibold">Description<textarea {...register('description')} rows={4} className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3 outline-none focus:border-coral" placeholder="What will students find here?" /></label><label className="block text-sm font-semibold">File<input type="file" {...register('file')} className="mt-2 block w-full rounded-xl border border-dashed border-ink/20 bg-cream p-4 text-sm" />{errors.file && <span className="mt-1 block text-xs font-normal text-coral">{String(errors.file.message)}</span>}</label>{error && <p role="alert" className="rounded-lg bg-coral/10 p-3 text-sm text-coral">{error}</p>}<button disabled={isSubmitting} className="w-full rounded-xl bg-coral px-5 py-3.5 font-bold text-white hover:bg-ink disabled:opacity-60">{isSubmitting ? 'Uploading...' : 'Upload material'}</button></form></div></div></div> }
+export function Upload() {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  useEffect(() => {
+    void academicService
+      .courses()
+      .then(setCourses)
+      .catch((e: unknown) => setError(getApiMessage(e, 'Courses could not be loaded.')))
+  }, [])
+  return (
+    <div className="min-h-screen bg-cream px-5 py-10">
+      <div className="mx-auto max-w-2xl">
+        <Link to="/" className="mb-12 inline-flex items-center gap-2 text-sm font-bold text-ink/55">
+          <ArrowLeft size={16} /> Back to library
+        </Link>
+        <div className="rounded-3xl border border-ink/10 bg-paper p-7 shadow-soft sm:p-12">
+          <div className="mb-10 flex items-start justify-between">
+            <div>
+              <p className="mb-3 text-sm font-bold uppercase tracking-wider text-coral">
+                Share knowledge
+              </p>
+              <h1 className="font-display text-5xl">Upload material.</h1>
+            </div>
+            <UploadCloud className="text-coral" size={32} />
+          </div>
+          <form
+            className="space-y-5"
+            onSubmit={handleSubmit(async (values) => {
+              try {
+                await materialService.upload({
+                  course: values.course,
+                  title: values.title,
+                  description: values.description,
+                  file: values.file[0],
+                })
+                navigate('/')
+              } catch (e) {
+                setError(getApiMessage(e, 'Upload failed. Please try again.'))
+              }
+            })}
+          >
+            <label className="block text-sm font-semibold">
+              Course
+              <select
+                {...register('course')}
+                className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3"
+              >
+                <option value="">Choose a course</option>
+                {courses.map((course) => (
+                  <option value={course.id} key={course.id}>
+                    {course.code} · {course.title}
+                  </option>
+                ))}
+              </select>
+              {errors.course && (
+                <span className="mt-1 block text-xs font-normal text-coral">
+                  {errors.course.message}
+                </span>
+              )}
+            </label>
+            <label className="block text-sm font-semibold">
+              Title
+              <input
+                {...register('title')}
+                className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3 outline-none focus:border-coral"
+                placeholder="e.g. Week 4 lecture notes"
+              />
+              {errors.title && (
+                <span className="mt-1 block text-xs font-normal text-coral">
+                  {errors.title.message}
+                </span>
+              )}
+            </label>
+            <label className="block text-sm font-semibold">
+              Description
+              <textarea
+                {...register('description')}
+                rows={4}
+                className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3 outline-none focus:border-coral"
+                placeholder="What will students find here?"
+              />
+            </label>
+            <label className="block text-sm font-semibold">
+              File
+              <input
+                type="file"
+                {...register('file')}
+                className="mt-2 block w-full rounded-xl border border-dashed border-ink/20 bg-cream p-4 text-sm"
+              />
+              {errors.file && (
+                <span className="mt-1 block text-xs font-normal text-coral">
+                  {String(errors.file.message)}
+                </span>
+              )}
+            </label>
+            {error && (
+              <p role="alert" className="rounded-lg bg-coral/10 p-3 text-sm text-coral">
+                {error}
+              </p>
+            )}
+            <button
+              disabled={isSubmitting}
+              className="w-full rounded-xl bg-coral px-5 py-3.5 font-bold text-white hover:bg-ink disabled:opacity-60"
+            >
+              {isSubmitting ? 'Uploading...' : 'Upload material'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}

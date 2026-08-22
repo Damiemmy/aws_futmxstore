@@ -8,14 +8,19 @@ export const api = axios.create({
 })
 
 let accessToken: string | null = null
-export const setAccessToken = (token: string | null) => { accessToken = token }
+export const setAccessToken = (token: string | null) => {
+  accessToken = token
+}
 
 api.interceptors.request.use((config) => {
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`
   return config
 })
 
-export const getApiMessage = (error: unknown, fallback = 'Something went wrong. Please try again.') => {
+export const getApiMessage = (
+  error: unknown,
+  fallback = 'Something went wrong. Please try again.',
+) => {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as { detail?: string } | undefined
     if (data?.detail) return data.detail

@@ -7,8 +7,16 @@ import './index.css'
 
 function Bootstrap() {
   const hydrate = useAuthStore((state) => state.hydrate)
-  useEffect(() => { void hydrate() }, [hydrate])
+  useEffect(() => {
+    void hydrate()
+  }, [hydrate])
   return <App />
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><Bootstrap /></BrowserRouter></StrictMode>)
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <Bootstrap />
+    </BrowserRouter>
+  </StrictMode>,
+)
