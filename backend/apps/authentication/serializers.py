@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
 from .models import User
-from .services import register_user
-from .services import login_user
+from .services import login_user,logout_user,register_user
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Cache
+.cache/
+.vite/
+
+# Generated files
+*.min.js
+*.min.css
