@@ -14,7 +14,9 @@ const schema = z.object({
   description: z.string(),
   file: z.custom<FileList>().refine((files) => files?.length === 1, 'Choose a file.'),
 })
-type FormValues = z.infer<typeof schema>
+// type FormValues = z.infer<typeof schema>
+type FormInput = z.input<typeof schema>
+type FormValues = z.output<typeof schema>
 export function Upload() {
   const [courses, setCourses] = useState<Course[]>([])
   const [error, setError] = useState('')
@@ -23,7 +25,11 @@ export function Upload() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  } = 
+  //useForm<FormValues>({ resolver: zodResolver(schema) })
+  useForm<FormInput, any, FormValues>({
+    resolver: zodResolver(schema),
+  })
   useEffect(() => {
     void academicService
       .courses()

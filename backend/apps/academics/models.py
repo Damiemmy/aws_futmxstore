@@ -125,7 +125,7 @@ class Level(models.Model):
         ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.department}"
 
 
 class Semester(models.Model):

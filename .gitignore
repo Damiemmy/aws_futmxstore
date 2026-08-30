@@ -48,6 +48,8 @@ htmlcov/
 # VIRTUAL ENVIRONMENTS
 ####################################
 .env
+.env.developement
+.env.production
 .env.*
 venv/
 trash/

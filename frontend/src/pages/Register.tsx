@@ -46,7 +46,7 @@ export function Register() {
               await api.post('/authentication/register/', values)
               const session = await login({ email: values.email, password: values.password })
               setSession({ ...session })
-              window.location.reload()
+              navigate('/')
             } catch (e) {
               setError(getApiMessage(e, 'Registration failed. Please check your details.'))
             }
