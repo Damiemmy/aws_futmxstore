@@ -51,6 +51,8 @@ htmlcov/
 .env.developement
 .env.production
 .env.*
+.env.local
+.env.*.local
 venv/
 trash/
 .venv/
@@ -164,3 +166,6 @@ pytestdebug.log
 *.tar
 *.tar.gz
 *.rar
+
+backups/
+backups2/
