@@ -72,7 +72,7 @@ class Faculty(models.Model):
         unique=True,
     )
 
-    slug = models.SlugField(
+    slug = models.SlugField(max_length=150,
         unique=True,
     )
 
@@ -91,7 +91,7 @@ class Department(models.Model):
         max_length=150,
     )
 
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True,max_length=150)
 
     class Meta:
         constraints = [
@@ -165,6 +165,7 @@ class Course(models.Model):
     title = models.CharField(
         max_length=200,
     )
+    unit = models.PositiveSmallIntegerField(default=2,max_length=1)
 
     class Meta:
         constraints = [

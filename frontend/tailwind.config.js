@@ -4,11 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#18332f',
-        cream: '#f5f1e8',
-        paper: '#fffdf8',
-        coral: '#e86d52',
-        moss: '#789b68',
+        ink: '#1F1235',
+        cream: '#F7F4F0',
+        paper: '#FFFFFF',
+        coral: '#5C2D91',
+        moss: '#E8B923',
         gold: '#d9a441',
       },
       fontFamily: {
