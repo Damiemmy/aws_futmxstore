@@ -74,6 +74,7 @@ class Faculty(models.Model):
 
     slug = models.SlugField(
         unique=True,
+        max_length=150,
     )
 
     def __str__(self):
@@ -91,7 +92,10 @@ class Department(models.Model):
         max_length=150,
     )
 
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(
+        unique=True,
+        max_length=150,
+    )
 
     class Meta:
         constraints = [
@@ -148,7 +152,7 @@ class Semester(models.Model):
         ]
 
     def __str__(self):
-        return self.name
+        return f" {self.name} - {self.level}"
 
 
 class Course(models.Model):
@@ -165,6 +169,8 @@ class Course(models.Model):
     title = models.CharField(
         max_length=200,
     )
+
+    unit = models.PositiveSmallIntegerField(max_length=1)
 
     class Meta:
         constraints = [
