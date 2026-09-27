@@ -21,6 +21,7 @@ else:
 echo "Running migrations..."
 python manage.py migrate --noinput
 python manage.py seed_roles
+python manage.py seed_academics
 
 echo "Loading initial data (if needed)..."
 # python manage.py loaddata data.json || echo "Fixture already loaded or skipped"
