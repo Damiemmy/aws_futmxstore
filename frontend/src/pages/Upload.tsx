@@ -1,139 +1,163 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, UploadCloud } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
-import { z } from 'zod'
-import { useEffect, useState } from 'react'
-import { academicService } from '../features/academics/services'
-import { materialService } from '../features/materials/services'
-import { getApiMessage } from '../api/client'
-import type { Course } from '../types/api'
-const schema = z.object({
-  course: z.coerce.number().positive('Choose a course.'),
-  title: z.string().min(2, 'Add a title.'),
-  description: z.string(),
-  file: z.custom<FileList>().refine((files) => files?.length === 1, 'Choose a file.'),
-})
-// type FormValues = z.infer<typeof schema>
-type FormInput = z.input<typeof schema>
-type FormValues = z.output<typeof schema>
+import {
+  ArrowRight,
+  BookOpen,
+  FileText,
+  GraduationCap,
+  Plus,
+  Sparkles,
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
+
 export function Upload() {
-  const [courses, setCourses] = useState<Course[]>([])
-  const [error, setError] = useState('')
-  const navigate = useNavigate()
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = 
-  //useForm<FormValues>({ resolver: zodResolver(schema) })
-  useForm<FormInput, any, FormValues>({
-    resolver: zodResolver(schema),
-  })
-  useEffect(() => {
-    void academicService
-      .courses()
-      .then(setCourses)
-      .catch((e: unknown) => setError(getApiMessage(e, 'Courses could not be loaded.')))
-  }, [])
   return (
-    <div className="min-h-screen bg-cream px-5 py-10">
-      <div className="mx-auto max-w-2xl">
-        <Link to="/" className="mb-12 inline-flex items-center gap-2 text-sm font-bold text-ink/55">
-          <ArrowLeft size={16} /> Back to library
+    <div className="relative min-h-screen overflow-hidden bg-cream px-3 py-5 sm:px-5 sm:py-10">
+      {/* Decorative academic background */}
+      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-coral/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-ink/5 blur-3xl" />
+
+      <div className="relative mx-auto w-full max-w-3xl">
+        {/* Back */}
+        <Link
+          to="/"
+          className="mb-6 inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm font-bold text-ink/55 transition-colors hover:text-ink sm:mb-10"
+        >
+          <ArrowRight size={16} className="rotate-180" />
+          Back to library
         </Link>
-        <div className="rounded-3xl border border-ink/10 bg-paper p-7 shadow-soft sm:p-12">
-          <div className="mb-10 flex items-start justify-between">
-            <div>
-              <p className="mb-3 text-sm font-bold uppercase tracking-wider text-coral">
-                Share knowledge
-              </p>
-              <h1 className="font-display text-5xl">Upload material.</h1>
+
+        {/* Main card */}
+        <div className="overflow-hidden rounded-3xl border border-ink/10 bg-paper shadow-soft">
+          {/* Hero */}
+          <div className="relative overflow-hidden px-5 pb-8 pt-7 sm:px-10 sm:pb-10 sm:pt-10">
+            {/* Decorative book illustration */}
+            <div className="pointer-events-none absolute -right-8 -top-8 hidden h-40 w-40 rotate-12 rounded-[2.5rem] bg-coral/5 sm:block" />
+
+            <div className="relative flex items-start justify-between gap-5">
+              <div className="min-w-0">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-coral/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-coral">
+                  <Sparkles size={13} />
+                  Student contribution
+                </div>
+
+                <h1 className="max-w-xl font-display text-4xl leading-[1.05] text-ink sm:text-6xl">
+                  Help build the library.
+                </h1>
+
+                <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
+                  Every note, past question, tutorial, and course you add can
+                  save another student hours of searching.
+                </p>
+              </div>
+
+              <div className="hidden shrink-0 sm:flex">
+                <div className="flex h-16 w-16 rotate-3 items-center justify-center rounded-2xl bg-coral/10 text-coral shadow-sm">
+                  <GraduationCap size={32} strokeWidth={1.7} />
+                </div>
+              </div>
             </div>
-            <UploadCloud className="text-coral" size={32} />
+
+            {/* Contribution principle */}
+            <div className="mt-7 flex items-start gap-3 rounded-2xl border border-ink/5 bg-cream/70 p-4 sm:mt-8 sm:p-5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-paper text-coral shadow-sm">
+                <Plus size={18} />
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-ink">
+                  See something missing?
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-ink/55 sm:text-sm">
+                  Don't leave the library incomplete. You can add the missing
+                  course and continue your contribution immediately.
+                </p>
+              </div>
+            </div>
           </div>
-          <form
-            className="space-y-5"
-            onSubmit={handleSubmit(async (values) => {
-              try {
-                await materialService.upload({
-                  course: values.course,
-                  title: values.title,
-                  description: values.description,
-                  file: values.file[0],
-                })
-                navigate('/')
-              } catch (e) {
-                setError(getApiMessage(e, 'Upload failed. Please try again.'))
-              }
-            })}
-          >
-            <label className="block text-sm font-semibold">
-              Course
-              <select
-                {...register('course')}
-                className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3"
+
+          {/* Options */}
+          <div className="border-t border-ink/10 bg-cream/40 p-3 sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {/* Upload material */}
+              <Link
+                to="/upload/material"
+                className="group relative overflow-hidden rounded-2xl border border-ink/10 bg-paper p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-coral/40 hover:shadow-soft active:translate-y-0 sm:p-6"
               >
-                <option value="">Choose a course</option>
-                {courses.map((course) => (
-                  <option value={course.id} key={course.id}>
-                    {course.code} · {course.title}
-                  </option>
-                ))}
-              </select>
-              {errors.course && (
-                <span className="mt-1 block text-xs font-normal text-coral">
-                  {errors.course.message}
-                </span>
-              )}
-            </label>
-            <label className="block text-sm font-semibold">
-              Title
-              <input
-                {...register('title')}
-                className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3 outline-none focus:border-coral"
-                placeholder="e.g. Week 4 lecture notes"
-              />
-              {errors.title && (
-                <span className="mt-1 block text-xs font-normal text-coral">
-                  {errors.title.message}
-                </span>
-              )}
-            </label>
-            <label className="block text-sm font-semibold">
-              Description
-              <textarea
-                {...register('description')}
-                rows={4}
-                className="mt-2 block w-full rounded-xl border border-ink/15 bg-cream px-4 py-3 outline-none focus:border-coral"
-                placeholder="What will students find here?"
-              />
-            </label>
-            <label className="block text-sm font-semibold">
-              File
-              <input
-                type="file"
-                {...register('file')}
-                className="mt-2 block w-full rounded-xl border border-dashed border-ink/20 bg-cream p-4 text-sm"
-              />
-              {errors.file && (
-                <span className="mt-1 block text-xs font-normal text-coral">
-                  {String(errors.file.message)}
-                </span>
-              )}
-            </label>
-            {error && (
-              <p role="alert" className="rounded-lg bg-coral/10 p-3 text-sm text-coral">
-                {error}
-              </p>
-            )}
-            <button
-              disabled={isSubmitting}
-              className="w-full rounded-xl bg-coral px-5 py-3.5 font-bold text-white hover:bg-ink disabled:opacity-60"
-            >
-              {isSubmitting ? 'Uploading...' : 'Upload material'}
-            </button>
-          </form>
+                <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-coral/5 transition-transform duration-300 group-hover:scale-125" />
+
+                <div className="relative">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-coral/10 text-coral">
+                      <FileText size={23} />
+                    </div>
+
+                    <ArrowRight
+                      size={19}
+                      className="text-ink/25 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-coral"
+                    />
+                  </div>
+
+                  <h2 className="mt-6 text-lg font-bold text-ink sm:text-xl">
+                    Upload material
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-ink/55">
+                    Share lecture notes, slides, handouts, tutorials, past
+                    questions, and other useful resources.
+                  </p>
+
+                  <div className="mt-5 text-xs font-bold uppercase tracking-wider text-coral">
+                    Start contributing
+                  </div>
+                </div>
+              </Link>
+
+              {/* Add course */}
+              <Link
+                to="/upload/course"
+                className="group relative overflow-hidden rounded-2xl border border-ink/10 bg-paper p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-coral/40 hover:shadow-soft active:translate-y-0 sm:p-6"
+              >
+                <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-ink/5 transition-transform duration-300 group-hover:scale-125" />
+
+                <div className="relative">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink/5 text-ink">
+                      <BookOpen size={23} />
+                    </div>
+
+                    <ArrowRight
+                      size={19}
+                      className="text-ink/25 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-coral"
+                    />
+                  </div>
+
+                  <h2 className="mt-6 text-lg font-bold text-ink sm:text-xl">
+                    Add a course
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-ink/55">
+                    Can't find your course? Add it to FUTMxStore and then
+                    continue straight to your material upload.
+                  </p>
+
+                  <div className="mt-5 text-xs font-bold uppercase tracking-wider text-coral">
+                    Add missing course
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Bottom message */}
+          <div className="flex items-center gap-3 border-t border-ink/10 px-5 py-4 sm:px-8">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-coral/10 text-coral">
+              <BookOpen size={15} />
+            </div>
+
+            <p className="text-xs leading-5 text-ink/50 sm:text-sm">
+              Built by students, strengthened by students.
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -5,6 +5,8 @@ import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { MaterialDetail } from './pages/MaterialDetail'
 import { Upload } from './pages/Upload'
+import { UploadMaterial } from './pages/UploadMaterial'
+import { AddCourse } from './pages/AddCourse'
 
 export function App() {
   return (
@@ -15,6 +17,8 @@ export function App() {
       <Route path="/materials/:id" element={<MaterialDetail />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/upload" element={<Upload />} />
+        <Route path="/upload/material" element={<UploadMaterial />} />
+        <Route path="/upload/course" element={<AddCourse />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
