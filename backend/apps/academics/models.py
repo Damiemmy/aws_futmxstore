@@ -72,7 +72,7 @@ class Faculty(models.Model):
         unique=True,
     )
 
-    slug = models.SlugField(
+    slug = models.SlugField(max_length=150,
         unique=True,
         max_length=150,
     )
@@ -91,10 +91,9 @@ class Department(models.Model):
     name = models.CharField(
         max_length=150,
     )
-
     slug = models.SlugField(
-        unique=True,
         max_length=150,
+        unique=True,
     )
 
     class Meta:
@@ -169,6 +168,7 @@ class Course(models.Model):
     title = models.CharField(
         max_length=200,
     )
+    unit = models.PositiveSmallIntegerField(default=2,max_length=1)
 
     unit = models.PositiveSmallIntegerField(max_length=1)
 
