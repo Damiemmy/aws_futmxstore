@@ -1,4 +1,4 @@
-name: Django Tests
+name: Django Tests & Deploy
 
 on:
   push:
@@ -31,3 +31,19 @@ jobs:
           DEBUG: ${{ secrets.DEBUG }}
         run: |
           python manage.py check
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to AWS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/aws_futmxstore
+            git pull origin main
+            docker compose up -d --build
