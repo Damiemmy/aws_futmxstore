@@ -1,69 +1,6 @@
-# from django.db import models
-
-# # Create your models here.
-# class Faculty(models.Model):
-#     name=models.CharField(max_length=100)
-#     slug=models.SlugField(max_length=100)
-#     description=models.TextField()
-
-# class Department(models.Model):
-#     name=models.CharField(max_length=100)
-#     slug=models.SlugField(max_length=100)
-
-#     def __str__(self):
-#         return self.name
-
-# class Level(models.Model):
-#     level=models.IntegerField(max_length=300)
-
-#     def __str__(self):
-#         return self.name
-
-# class Semester(models.Model):
-#     semester=models.CharField(max_length=20)
-
-#     def __str__(self):
-#         return self.name
-
-# #should on_delete=models.CASCADE ON ALL FIELD OR SET_NULL
-# class Course(models.Model):
-#     department=models.ForeignKey(Department,on_delete=models.CASCADE)
-#     code=models.CharField(max_length=20)
-#     title=models.CharField(max_length=100)
-#     description=models.TextField(max_length=1200)
-#     level=models.ForeignKey(Level,on_delete=models.CASCADE,related_name='past_questions')
-#     semester=models.ForeignKey(Semester,on_delete=models.CASCADE,related_name='past_questions')
-#     lecture=models.CharField(max_length=100)
-    
-# #should on_delete=models.CASCADE ON ALL FIELD OR SET_NULL
-# class Material(models.Model):
-#     MATERIAL_TYPE=(
-#         ("lecture_note","Lecture Note"),
-#         ("handout","Handout" ),
-#         ("lab_manual","Lab Manual"),
-#         ("slides","Slides"),
-#         ("tutorial","Tutorial"),
-
-#     )
-
-#     course=models.ForeignKey(Course,on_delete=models.CASCADE)
-#     title=models.CharField(max_length=100)
-#     description=models.TextField(max_length=1200)
-#     material_type=models.CharField(max_length=20,choices=MATERIAL_TYPE, default="Lecture_note")
-
-
-# #should on_delete=models.CASCADE ON ALL FIELD OR SET_NULL
-# class PastQuestion(models.Model):
-#     course=models.ForeignKey(Course,on_delete=models.CASCADE,related_name='past_questions')
-#     year=models.CharField(max_length=4)
-#     semester=models.ForeignKey(Semester,on_delete=models.CASCADE,related_name='past_questions')
-#     pdf=models.FileField(upload_to='/pastquestions')
-#     uploaded_by=models.ForeignKey(User,on_delete=models.CASCADE,related_name='past_questions')
-#     create_at=models.DatetimeField(auto_add_now=True)
-
-
 from django.db import models
 from django.conf import settings
+from django.db.models import Q
 
 
 class Faculty(models.Model):
@@ -72,9 +9,9 @@ class Faculty(models.Model):
         unique=True,
     )
 
-    slug = models.SlugField(max_length=150,
-        unique=True,
+    slug = models.SlugField(
         max_length=150,
+        unique=True,
     )
 
     def __str__(self):
@@ -91,9 +28,10 @@ class Department(models.Model):
     name = models.CharField(
         max_length=150,
     )
+
     slug = models.SlugField(
-        max_length=150,
         unique=True,
+        max_length=150,
     )
 
     class Meta:
@@ -108,11 +46,82 @@ class Department(models.Model):
         return self.name
 
 
+class Programme(models.Model):
+    """
+    Represents an academic programme/specialization under a department.
+
+    Example:
+
+    Industrial and Technology Education
+        ├── Automobile Technology Education
+        ├── Building Technology Education
+        ├── Electrical and Electronics Technology Education
+        ├── Metalwork Technology Education
+        └── Woodwork Technology Education
+
+    A department does not necessarily need a Programme.
+    """
+
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE,
+        related_name="programmes",
+    )
+
+    name = models.CharField(
+        max_length=200,
+    )
+
+    slug = models.SlugField(
+        max_length=200,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["department", "name"],
+                name="unique_programme_per_department",
+            ),
+            models.UniqueConstraint(
+                fields=["department", "slug"],
+                name="unique_programme_slug_per_department",
+            ),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
 class Level(models.Model):
+    """
+    Academic level.
+
+    programme is nullable during the migration period so that
+    existing production levels continue to work.
+
+    Eventually:
+
+        Department
+            └── Programme
+                    └── Level
+
+    For departments without programmes:
+
+        Department
+            └── Level
+    """
     department = models.ForeignKey(
         Department,
         on_delete=models.CASCADE,
         related_name="levels",
+    )
+
+    programme = models.ForeignKey(
+        Programme,
+        on_delete=models.CASCADE,
+        related_name="levels",
+        null=True,
+        blank=True,
     )
 
     name = models.CharField(
@@ -122,13 +131,69 @@ class Level(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
+                # General department-level context:
+                # `programme=NULL` means this level belongs to the department as a whole,
+                # not to any specific programme.
+                #
+                # Example:
+                #   ITE + 100 Level + NULL
+                #   → "This applies generally to all relevant ITE 100-level students."
+                #
+                # Therefore, the exact same combination must exist only once.
+                # Two identical records would mean we created the same general context twice.
+                #
+                # Programme-specific contexts are different:
+                #   ITE + Computer Science + 100 Level
+                #   ITE + Cyber Security + 100 Level
+                #   → These represent different student groups, so both are valid.
+                #
+                # MEMORY RULE:
+                #   NULL programme = GENERAL department context → ONE per department + level
+                #   Programme specified = SPECIFIC programme context → ONE per programme + level
                 fields=["department", "name"],
-                name="unique_level_per_department",
-            )
+                condition=Q(programme__isnull=True), #If a Level does NOT belong to a programme, its department + name must be unique.
+                name="unique_general_level_per_department",
+            ),
+            models.UniqueConstraint(
+                fields=["programme","name"],#this is the default
+                name="unique_level_per_programme",
+            ),
         ]
 
     def __str__(self):
+        if self.programme:
+            return f"{self.name} - {self.programme}"
+
         return f"{self.name} - {self.department}"
+
+class AcademicSession(models.Model):
+    """
+    Represents an academic session/year.
+
+    Examples:
+        2024/2025
+        2025/2026
+        2026/2027
+    """
+
+    name = models.CharField(
+        max_length=20,
+        unique=True,
+    )
+
+    start_year = models.PositiveIntegerField()
+
+    end_year = models.PositiveIntegerField()
+
+    is_active = models.BooleanField(
+        default=False,
+    )
+
+    class Meta:
+        ordering = ["-start_year"]
+
+    def __str__(self):
+        return self.name
 
 
 class Semester(models.Model):
@@ -151,10 +216,23 @@ class Semester(models.Model):
         ]
 
     def __str__(self):
-        return f" {self.name} - {self.level}"
+        return self.name
 
 
 class Course(models.Model):
+    """
+    Represents the reusable academic course itself.
+
+    Example:
+
+        CSC 401
+        Software Engineering
+        3 units
+
+    The academic session is NOT stored directly here because
+    the same course can exist across multiple academic sessions.
+    """
+
     semester = models.ForeignKey(
         Semester,
         on_delete=models.CASCADE,
@@ -168,9 +246,10 @@ class Course(models.Model):
     title = models.CharField(
         max_length=200,
     )
-    unit = models.PositiveSmallIntegerField(default=2,max_length=1)
 
-    unit = models.PositiveSmallIntegerField(max_length=1)
+    unit = models.PositiveSmallIntegerField(
+        default=2,
+    )
 
     class Meta:
         constraints = [
@@ -184,11 +263,59 @@ class Course(models.Model):
         return f"{self.code} - {self.title}"
 
 
+class CourseOffering(models.Model):
+    """
+    Connects a reusable Course to a specific academic session.
+
+    Example:
+
+        CSC 401
+        400 Level
+        First Semester
+        2025/2026
+    """
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="offerings",
+    )
+
+    academic_session = models.ForeignKey(
+        AcademicSession,
+        on_delete=models.PROTECT,
+        related_name="course_offerings",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["course", "academic_session"],
+                name="unique_course_offering_per_session",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.course} - {self.academic_session}"
+
+
 class Material(models.Model):
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
         related_name="materials",
+    )
+
+    # New relationship.
+    #
+    # Nullable temporarily because existing production materials
+    # do not yet know their academic session.
+    course_offering = models.ForeignKey(
+        CourseOffering,
+        on_delete=models.PROTECT,
+        related_name="materials",
+        null=True,
+        blank=True,
     )
 
     title = models.CharField(
@@ -202,7 +329,7 @@ class Material(models.Model):
     file = models.FileField(
         upload_to="materials/",
     )
-    
+
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,

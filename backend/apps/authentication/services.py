@@ -36,7 +36,7 @@ def register_user(*, email, password, username=None):
     user = User.objects.create_user(
         email=email,
         password=password,
-        username=username,
+        username=username.lower(),
     )
 
     customer_role = Role.objects.get(name="Customer")

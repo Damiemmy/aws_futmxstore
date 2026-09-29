@@ -4,14 +4,27 @@ from rest_framework.views import APIView
 from .serializers import (
     FacultySerializer,
     DepartmentSerializer,
+    ProgrammeSerializer,
+    AcademicSessionSerializer,
+    CourseOfferingSerializer,
     LevelSerializer,
     SemesterSerializer,
     CourseSerializer,
     MaterialSerializer,
 )
 
-from .selectors import get_faculties,get_departments,get_levels,get_semesters,get_courses,get_materials
-from .services import create_material
+from .selectors import (
+    get_faculties,
+    get_departments,
+    get_programmes,
+    get_academic_sessions,
+    get_course_offerings,
+    get_levels,
+    get_semesters,
+    get_courses,
+    get_materials,
+)
+from .services import create_material,create_course
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import Material
 from .permissions import CanUploadMaterial
@@ -43,6 +56,23 @@ class DepartmentListView(ListAPIView):
     def get_queryset(self):
         return get_departments()
 
+
+class ProgrammeListView(ListAPIView):
+
+    serializer_class = ProgrammeSerializer
+
+    def get_queryset(self):
+        return get_programmes()
+
+
+class AcademicSessionListView(ListAPIView):
+
+    serializer_class = AcademicSessionSerializer
+
+    def get_queryset(self):
+        return get_academic_sessions()
+
+
 class LevelListView(ListAPIView):
     serializer_class=LevelSerializer
 
@@ -67,7 +97,19 @@ class CourseListView(ListAPIView):
         return(
             get_courses()
         )       
+class CourseCreateView(CreateAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        course = create_course(
+            code=serializer.validated_data["code"],
+            title=serializer.validated_data["title"],
+            unit=serializer.validated_data["unit"],
+            semester=serializer.validated_data["semester"],
+        )
+
+        serializer.instance = course
 
 class MaterialCreateView(CreateAPIView):
 
@@ -81,6 +123,7 @@ class MaterialCreateView(CreateAPIView):
     def perform_create(self, serializer):
         material = create_material(
             course=serializer.validated_data["course"],
+            academic_session=serializer.validated_data["academic_session"],
             title=serializer.validated_data["title"],
             description=serializer.validated_data.get("description", ""),
             file=serializer.validated_data["file"],
@@ -152,3 +195,12 @@ class MaterialDownloadView(APIView):
             raise NotFound("Material not found.")
 
         return download_material(material)
+
+
+class CourseOfferingListView(ListAPIView):
+
+    serializer_class = CourseOfferingSerializer
+
+    def get_queryset(self):
+        return get_course_offerings()
+
