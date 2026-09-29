@@ -242,7 +242,7 @@ export function Home() {
                   Built for FUT Minna
                 </div>
 
-                <h1 className="font-display text-[3.15rem] leading-[0.9] tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[6.8rem]">
+                <h1 className="font-display text-[2.70rem] leading-[0.9] tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[6.8rem]">
                   Your next
                   <span className="block text-coral">
                     breakthrough
