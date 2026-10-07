@@ -16,7 +16,7 @@ import {
   api,
   parseApiError,
 } from '../api/client'
-import { login } from '../features/authentication/services'
+// import { login } from '../features/authentication/services'
 import { useAuthStore } from '../store/auth'
 
 const schema = z
@@ -42,7 +42,8 @@ type FormValues = z.infer<typeof schema>
 
 export function Register() {
   const navigate = useNavigate()
-  const setSession = useAuthStore.setState
+  // const setSession = useAuthStore.setState
+  const signIn = useAuthStore((s) => s.signIn)
   const [error, setError] = React.useState('')
 
   const {
@@ -90,12 +91,16 @@ export function Register() {
               values,
             )
 
-            const session = await login({
+            // const session = await login({
+            //   email: values.email,
+            //   password: values.password,
+            // })
+
+            // navigate('/')
+            await signIn({
               email: values.email,
               password: values.password,
             })
-
-            setSession({ ...session })
 
             navigate('/')
           } catch (e) {
