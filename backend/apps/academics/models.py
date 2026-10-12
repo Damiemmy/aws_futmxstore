@@ -232,6 +232,11 @@ class Course(models.Model):
     The academic session is NOT stored directly here because
     the same course can exist across multiple academic sessions.
     """
+    class Status(models.TextChoices):
+            PENDING = "pending", "Pending"
+            APPROVED = "approved", "Approved"
+            REJECTED = "rejected", "Rejected"
+    
 
     semester = models.ForeignKey(
         Semester,
@@ -250,6 +255,30 @@ class Course(models.Model):
     unit = models.PositiveSmallIntegerField(
         default=2,
     )
+
+    #for approval system we add this field to the course model to indicate if a course is approved or not
+    
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_courses",
+    )
+
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    rejection_reason = models.TextField(blank=True)
 
     class Meta:
         constraints = [
@@ -300,6 +329,11 @@ class CourseOffering(models.Model):
 
 
 class Material(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
@@ -346,5 +380,42 @@ class Material(models.Model):
         auto_now=True,
     )
 
+    #for approval system we add this field to the course model to indicate if a course is approved or not
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_materials",
+    )
+
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    rejection_reason = models.TextField(blank=True)
+
     def __str__(self):
         return self.title
+
+class CourseRequest(Course):
+    class Meta:
+        proxy = True
+        verbose_name = "Course request"
+        verbose_name_plural = "Course requests"
+
+
+class MaterialRequest(Material):
+    class Meta:
+        proxy = True
+        verbose_name = "Material request"
+        verbose_name_plural = "Material requests"

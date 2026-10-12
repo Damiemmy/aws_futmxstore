@@ -15,3 +15,27 @@ class CanUploadMaterial(BasePermission):
             is_active=True,
             is_approved=True,
         ).exists()
+# class CanUploadMaterial(BasePermission):
+#     message = "Authentication is required to contribute."
+
+#     def has_permission(self, request, view):
+#         return bool(request.user and request.user.is_authenticated)
+
+
+class CanReviewAcademicContent(BasePermission):
+    message = "You are not authorized to review academic content."
+
+    def has_permission(self, request, view):
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return False
+
+        if user.is_staff:
+            return True
+
+        return user.user_roles.filter(
+            role__name__in=["Admin", "Lecturer","Course Representative"],
+            is_active=True,
+            is_approved=True,
+        ).exists()

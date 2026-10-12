@@ -35,14 +35,25 @@ def get_semesters():
         .order_by("name")
     )
 
+'''
 def get_courses():
     return (
         Course.objects
         .select_related("semester")
         .order_by('title')
     )
+'''
 
-# def get_materials():
+def get_courses():
+    """Courses approved for public browsing."""
+    return (
+        Course.objects
+        .filter(status=Course.Status.APPROVED)
+        .select_related("semester")
+        .order_by("title")
+    )
+
+#def get_materials():
 #     return(    
 #         Material.objects
 #         .select_related("course","uploaded_by")
@@ -63,7 +74,7 @@ def get_materials(*, course_id=None):
     return queryset
 '''
 
-def get_materials(*, course_id=None, search=None):
+'''previous#def get_materials(*, course_id=None, search=None):
     queryset = (
         Material.objects
         .select_related("course", "course_offering__academic_session", "uploaded_by")
@@ -82,6 +93,38 @@ def get_materials(*, course_id=None, search=None):
     return queryset
 
 '''
+
+def get_materials(*, course_id=None, search=None):
+    """Only publish approved materials under approved courses."""
+    queryset = (
+        Material.objects
+        .filter(
+            status=Material.Status.APPROVED,
+            course__status=Course.Status.APPROVED,
+        )
+        .select_related(
+            "course",
+            "course__semester",
+            "course_offering__academic_session",
+            "uploaded_by",
+        )
+        .order_by("-created_at")
+    )
+
+    if course_id:
+        queryset = queryset.filter(course_id=course_id)
+
+    if search:
+        queryset = queryset.filter(
+            Q(title__icontains=search)
+            | Q(description__icontains=search)
+            | Q(course__code__icontains=search)
+            | Q(uploaded_by__username__icontains=search)
+        )
+
+    return queryset
+
+'''
 def get_material(*, material_id):
     return (
         Material.objects
@@ -91,6 +134,7 @@ def get_material(*, material_id):
     )
 '''
 
+'''
 def get_material(*, material_id):
     return (
         Material.objects
@@ -107,7 +151,27 @@ def get_material(*, material_id):
         .filter(id=material_id)
         .first()
     )
-
+'''
+def get_material(*, material_id):
+    return (
+        Material.objects
+        .filter(
+            id=material_id,
+            status=Material.Status.APPROVED,
+            course__status=Course.Status.APPROVED,
+        )
+        .select_related(
+            "course",
+            "course__semester",
+            "course__semester__level",
+            "course__semester__level__department",
+            "course__semester__level__department__faculty",
+            "course__semester__level__programme",
+            "course_offering__academic_session",
+            "uploaded_by",
+        )
+        .first()
+    )
 def get_programmes():
     return (
         Programme.objects
@@ -124,6 +188,7 @@ def get_academic_sessions():
 def get_course_offerings():
     return (
         CourseOffering.objects
+        .filter(course__status=Course.Status.APPROVED)
         .select_related(
             "course",
             "academic_session",
@@ -132,4 +197,42 @@ def get_course_offerings():
             "-academic_session__start_year",
             "course__code",
         )
+    )
+
+
+def get_pending_materials():
+    return (
+        Material.objects
+        .filter(status=Material.Status.PENDING)
+        .select_related(
+            "course",
+            "course_offering__academic_session",
+            "uploaded_by",
+        )
+        .order_by("-created_at")
+    )
+
+def get_pending_courses():
+    return (
+        Course.objects
+        .filter(status=Course.Status.PENDING)
+        .select_related("semester")
+        .order_by("title")
+    )
+
+def get_courses_for_material_upload():
+    """
+    Pending courses can accept contributions.
+    Rejected courses cannot.
+    """
+    return (
+        Course.objects
+        .filter(
+            status__in=[
+                Course.Status.PENDING,
+                Course.Status.APPROVED,
+            ]
+        )
+        .select_related("semester")
+        .order_by("title")
     )

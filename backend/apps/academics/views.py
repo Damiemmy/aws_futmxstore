@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.generics import ListAPIView,CreateAPIView
+from .models import Course,Material
 from rest_framework.views import APIView
 from .serializers import (
     FacultySerializer,
@@ -11,6 +12,7 @@ from .serializers import (
     SemesterSerializer,
     CourseSerializer,
     MaterialSerializer,
+
 )
 
 from .selectors import (
@@ -23,11 +25,22 @@ from .selectors import (
     get_semesters,
     get_courses,
     get_materials,
+    get_courses_for_material_upload,
+    get_pending_courses,
+    get_pending_materials,
 )
-from .services import create_material,create_course
+from .services import (
+    create_material,
+    create_course,
+    download_material,
+    approve_course,
+    reject_course,
+    approve_material,
+    reject_material,
+)
+
 from rest_framework.permissions import IsAuthenticated,AllowAny
-from .models import Material
-from .permissions import CanUploadMaterial
+from .permissions import CanReviewAcademicContent, CanUploadMaterial
 
 
 from rest_framework.generics import RetrieveAPIView
@@ -37,7 +50,6 @@ from .selectors import get_material
 
 from rest_framework.response import Response
 from rest_framework import status
-from .services import download_material
 from .pagination import MaterialPagination
 
 
@@ -204,3 +216,87 @@ class CourseOfferingListView(ListAPIView):
     def get_queryset(self):
         return get_course_offerings()
 
+class CourseUploadOptionsView(ListAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return get_courses_for_material_upload()
+
+
+class PendingCourseListView(ListAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [
+        IsAuthenticated,
+        CanReviewAcademicContent,
+    ]
+
+    def get_queryset(self):
+        return get_pending_courses()
+
+
+class PendingMaterialListView(ListAPIView):
+    serializer_class = MaterialSerializer
+    permission_classes = [
+        IsAuthenticated,
+        CanReviewAcademicContent,
+    ]
+
+    def get_queryset(self):
+        return get_pending_materials()
+
+class ReviewActionView(APIView):
+    permission_classes = [
+        IsAuthenticated,
+        CanReviewAcademicContent,
+    ]
+
+    model = None
+    approve_service = None
+    reject_service = None
+    id_field = None
+
+    def post(self, request, pk, action):
+        if action not in {"approve", "reject"}:
+            raise NotFound("Review action not found.")
+
+        if not self.model.objects.filter(pk=pk).exists():
+            raise NotFound("Submission not found.")
+
+        if action == "approve":
+            result = self.approve_service(
+                **{self.id_field: pk},
+                reviewer=request.user,
+            )
+        else:
+            reason = request.data.get("rejection_reason", "").strip()
+
+            if not reason:
+                raise ValidationError({
+                    "rejection_reason": "A rejection reason is required."
+                })
+
+            result = self.reject_service(
+                **{self.id_field: pk},
+                reviewer=request.user,
+                reason=reason,
+            )
+
+        return Response({
+            "detail": f"Submission {result.status}.",
+            "id": result.pk,
+            "status": result.status,
+        }, status=status.HTTP_200_OK)
+
+class CourseReviewView(ReviewActionView):
+    model = Course
+    approve_service = staticmethod(approve_course)
+    reject_service = staticmethod(reject_course)
+    id_field = "course_id"
+
+
+class MaterialReviewView(ReviewActionView):
+    model = Material
+    approve_service = staticmethod(approve_material)
+    reject_service = staticmethod(reject_material)
+    id_field = "material_id"

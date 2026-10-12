@@ -9,6 +9,7 @@ from .models import (
     Semester,
     Course,
     Material,
+    
 )
 
 
@@ -92,8 +93,41 @@ class CourseSerializer(serializers.ModelSerializer):
             "unit",
             "semester",
             "semester_name",
+            "status",
+            "reviewed_at",
+            "rejection_reason",
+        ]
+        read_only_fields = [
+            "id",
+            "status",
+            "reviewed_at",
+            "rejection_reason",
         ]
 
+    def validate(self, attrs):
+        semester = attrs.get(
+            "semester",
+            getattr(self.instance, "semester", None),
+        )
+        code = attrs.get(
+            "code",
+            getattr(self.instance, "code", None),
+        )
+
+        duplicates = Course.objects.filter(
+            semester=semester,
+            code__iexact=code,
+        )
+
+        if self.instance:
+            duplicates = duplicates.exclude(pk=self.instance.pk)
+
+        if duplicates.exists():
+            raise serializers.ValidationError({
+                "code": "A course with this code already exists in this semester."
+            })
+
+        return attrs
 
 '''
 class MaterialSerializer(serializers.ModelSerializer):
@@ -254,6 +288,11 @@ class MaterialSerializer(serializers.ModelSerializer):
             # Dates
             "created_at",
             "updated_at",
+
+            #approval workflow
+            "status",
+            "reviewed_at",
+            "rejection_reason",
         ]
 
         read_only_fields = [
@@ -275,6 +314,11 @@ class MaterialSerializer(serializers.ModelSerializer):
             "uploaded_by_username",
             "created_at",
             "updated_at",
+
+            #approval read_only_record
+            "status",
+            "reviewed_at",
+            "rejection_reason",
         ]
 
     def get_file_name(self, obj):
@@ -303,7 +347,13 @@ class MaterialSerializer(serializers.ModelSerializer):
         except (OSError, ValueError):
             return None
 
+    def validate_course(self, course):
+        if course.status == Course.Status.REJECTED:
+            raise serializers.ValidationError(
+                "You cannot upload materials to a rejected course."
+            )
 
+        return course
 class ProgrammeSerializer(serializers.ModelSerializer):
 
     department_name = serializers.CharField(
