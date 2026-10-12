@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import {
   ArrowLeft,
   ArrowRight,
@@ -262,6 +263,10 @@ export function AddCourse() {
           unit: unitValue,
           semester: Number(semesterId),
         })
+        toast.success('Course request submitted', {
+          description:
+            'Your course is awaiting review. Once approved, it will be available to students on FUTMxStore.',
+        })
 
       /*
        * Clear the form immediately.
@@ -286,12 +291,16 @@ export function AddCourse() {
         },
       })
     } catch (e: unknown) {
-      setError(
-        getApiMessage(
-          e,
-          'The course could not be added. Please try again.',
-        ),
+      const message = getApiMessage(
+        e,
+        'The course could not be added. Please try again.',
       )
+
+      setError(message)
+
+      toast.error('Course submission failed', {
+        description: message,
+      })
     } finally {
       setSubmitting(false)
     }

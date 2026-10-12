@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, type ReactNode } from 'react'
+import { toast } from 'sonner'
 
 import { useAuthStore } from '../store/auth'
 
@@ -35,10 +36,28 @@ export function AppShell({
     setMobileMenuOpen(false)
   }
 
-  const handleSignOut = () => {
+  // const handleSignOut = () => {
+  //   closeMobileMenu()
+  //   void signOut()
+  //   navigate('/')
+  // }
+
+  const handleSignOut = async () => {
     closeMobileMenu()
-    void signOut()
-    navigate('/')
+
+    try {
+      await signOut()
+
+      toast.success('Signed out successfully', {
+        description: 'You can come back anytime. Happy learning!',
+      })
+
+      navigate('/')
+    } catch {
+      toast.error('Sign-out failed', {
+        description: 'We could not sign you out. Please try again.',
+      })
+    }
   }
 
   const displayName = user

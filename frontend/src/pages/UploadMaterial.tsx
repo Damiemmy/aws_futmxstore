@@ -1,3 +1,5 @@
+
+import { toast } from 'sonner'
 import {
   ArrowLeft,
   Check,
@@ -59,8 +61,6 @@ export function UploadMaterial() {
     useState<Course | null>(null)
 
   const [error, setError] = useState('')
-  const [courseCreatedMessage, setCourseCreatedMessage] =
-    useState(false)
 
   const coursePickerRef = useRef<HTMLDivElement>(null)
 
@@ -91,7 +91,7 @@ export function UploadMaterial() {
    */
   useEffect(() => {
     void Promise.all([
-      academicService.courses(),
+      academicService.coursesForUpload(),
       academicService.academicSessions(),
     ])
       .then(([courseData, sessionData]) => {
@@ -110,6 +110,7 @@ export function UploadMaterial() {
 
   /*
    * If a new course was just created, automatically select it.
+   * Clear navigation state after consuming it.
    */
   useEffect(() => {
     const selectedCourseId =
@@ -134,16 +135,6 @@ export function UploadMaterial() {
       shouldDirty: true,
     })
 
-    if (navigationState?.courseCreated) {
-      setCourseCreatedMessage(true)
-
-      const timer = window.setTimeout(() => {
-        setCourseCreatedMessage(false)
-      }, 3500)
-
-      return () => window.clearTimeout(timer)
-    }
-
     /*
      * Remove navigation state after consuming it so a refresh/back
      * navigation does not repeatedly re-apply the same course.
@@ -155,7 +146,6 @@ export function UploadMaterial() {
   }, [
     courses,
     location.pathname,
-    navigationState?.courseCreated,
     navigationState?.selectedCourseId,
     navigate,
     setValue,
@@ -280,28 +270,6 @@ export function UploadMaterial() {
             </div>
           </div>
 
-          {/* Course-created confirmation */}
-          {courseCreatedMessage && (
-            <div
-              role="status"
-              className="mx-4 mb-2 flex items-start gap-3 rounded-2xl border border-green-600/10 bg-green-500/10 px-4 py-3.5 sm:mx-7"
-            >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
-                <Check size={16} />
-              </div>
-
-              <div>
-                <p className="text-sm font-bold text-green-800">
-                  Course added successfully
-                </p>
-
-                <p className="mt-0.5 text-xs leading-5 text-green-800/70">
-                  We've selected it for you. Just finish your upload.
-                </p>
-              </div>
-            </div>
-          )}
-
           <form
             className="space-y-6 px-5 pb-6 sm:space-y-7 sm:px-10 sm:pb-10"
             onSubmit={handleSubmit(async (values) => {
@@ -317,14 +285,23 @@ export function UploadMaterial() {
                   file: values.file[0],
                 })
 
+                toast.success('Material submitted for review', {
+                  description:
+                    'Your material is awaiting approval. Once approved, it will be available to students on FUTMxStore.',
+                })
+
                 navigate('/')
-              } catch (e) {
-                setError(
-                  getApiMessage(
-                    e,
-                    'Upload failed. Please try again.',
-                  ),
+              } catch (e: unknown) {
+                const message = getApiMessage(
+                  e,
+                  'Upload failed. Please try again.',
                 )
+
+                setError(message)
+
+                toast.error('Material upload failed', {
+                  description: message,
+                })
               }
             })}
           >
@@ -413,9 +390,7 @@ export function UploadMaterial() {
                                   key={course.id}
                                   type="button"
                                   onClick={() =>
-                                    handleCourseSelect(
-                                      course,
-                                    )
+                                    handleCourseSelect(course)
                                   }
                                   className="flex min-h-20 w-full items-start gap-3 border-b border-ink/5 px-4 py-4 text-left transition last:border-b-0 hover:bg-cream active:bg-cream"
                                 >
@@ -469,9 +444,7 @@ export function UploadMaterial() {
                               }}
                               className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-coral px-5 text-sm font-bold text-white transition hover:opacity-90"
                               onClick={() =>
-                                setCourseDropdownOpen(
-                                  false,
-                                )
+                                setCourseDropdownOpen(false)
                               }
                             >
                               + Add this course
@@ -590,7 +563,11 @@ export function UploadMaterial() {
 
                 <p className="mt-1 text-xs font-normal text-ink/45">
                   {selectedFile
-                    ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
+                    ? `${(
+                        selectedFile.size /
+                        1024 /
+                        1024
+                      ).toFixed(2)} MB`
                     : 'Tap here to browse files on your phone'}
                 </p>
 

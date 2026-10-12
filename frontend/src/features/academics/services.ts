@@ -7,6 +7,7 @@ export const academicService = {
   levels: async () => (await api.get<Level[]>('/academics/levels/')).data,
   semesters: async () => (await api.get<Semester[]>('/academics/semesters/')).data,
   courses: async () => (await api.get<Course[]>('/academics/courses/')).data,
+  coursesForUpload: async () =>(await api.get<Course[]>('/academics/courses/for-upload/')).data,
   programmes: async () => (await api.get<Programme[]>('/academics/programmes/')).data,
   academicSessions: async () => (await api.get<AcademicSession[]>('/academics/sessions/')).data,
   createCourse: async (payload: CourseCreatePayload) =>

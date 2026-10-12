@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { toast } from 'sonner'
 import type { ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -101,7 +102,10 @@ export function Register() {
               email: values.email,
               password: values.password,
             })
-
+            toast.success('Welcome to FUTMxStore!', {
+              description:
+                'Your account is ready. Discover resources, learn, and share with your fellow students.',
+            })
             navigate('/')
           } catch (e) {
             const parsedError = parseApiError(
@@ -154,6 +158,9 @@ export function Register() {
               Object.keys(parsedError.fieldErrors).length === 0
             ) {
               setError(parsedError.message)
+              toast.error('Registration failed', {
+                description: parsedError.message,
+              })
             }
           }
         })}

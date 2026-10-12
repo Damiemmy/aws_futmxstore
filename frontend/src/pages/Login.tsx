@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
 import {
   ArrowLeft,
   ArrowRight,
@@ -53,16 +54,24 @@ export function Login() {
           try {
             await signIn(values)
 
+            toast.success('Welcome back!', {
+              description: 'You’re signed in and ready to continue learning.',
+            })
+
             navigate(from, {
               replace: true,
             })
-          } catch (e) {
-            setError(
-              getApiMessage(
-                e,
-                'We could not sign you in. Check your details.',
-              ),
+          } catch (e: unknown) {
+            const message = getApiMessage(
+              e,
+              'We could not sign you in. Check your details.',
             )
+
+            setError(message)
+
+            toast.error('Sign-in failed', {
+              description: message,
+            })
           }
         })}
         className="space-y-5"

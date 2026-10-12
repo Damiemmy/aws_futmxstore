@@ -49,3 +49,42 @@ textarea:focus-visible {
     transform: translateY(0);
   }
 }
+
+
+
+/* FUTMxStore toast styling */
+.futmx-toast {
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 24px));
+  border-radius: 16px !important;
+  padding: 16px !important;
+  gap: 10px;
+  box-shadow: 0 12px 36px rgb(0 0 0 / 12%);
+}
+
+.futmx-toast-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+}
+
+.futmx-toast-description {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .futmx-toast {
+    width: calc(100vw - 24px) !important;
+    max-width: 420px;
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .futmx-toast-description {
+    font-size: 12px !important;
+    line-height: 1.6 !important;
+  }
+}
