@@ -63,7 +63,7 @@ class UserRole(models.Model):
     role = models.ForeignKey(Role,on_delete=models.CASCADE,related_name="user_roles",)
 
     is_approved = models.BooleanField(default=False,)
-    is_active = models.BooleanField(default=True,)
+    is_active = models.BooleanField(default=False,)
     assigned_at = models.DateTimeField(auto_now_add=True,)
 
     class Meta:

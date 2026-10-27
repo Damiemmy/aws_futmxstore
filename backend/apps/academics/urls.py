@@ -29,7 +29,6 @@ urlpatterns = [
     path("levels/",LevelListView.as_view(),name='level-list'),
     path("semesters/",SemesterListView.as_view(),name='semester-list'),
     path("courses/",CourseListView.as_view(),name='course-list'),
-    # path("courses/",CourseUploadOptionsView.as_view(),name='course-list'),
     path("materials/create/",MaterialCreateView.as_view(),name="material-create",),
     path("materials/",MaterialListView.as_view(),name="material-list",),
     path("materials/<int:pk>/",MaterialDetailView.as_view(),name="material-detail",),

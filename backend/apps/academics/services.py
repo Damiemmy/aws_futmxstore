@@ -1,6 +1,7 @@
-from .models import Material,CourseOffering,Course
+from .models import Material,CourseOffering,Course,MaterialDownload
 from django.db import transaction
 from django.utils import timezone
+
 
 from django.http import FileResponse
 
@@ -68,13 +69,43 @@ def create_course(
     )
 
 
-
+'''
 def download_material(material):
     return FileResponse(
         material.file.open("rb"),
         as_attachment=True,
         filename=material.file.name.split("/")[-1],
     )
+'''
+
+
+def download_material(*, material, user):
+    """
+    Record an authorized download request and return the file response.
+
+    This counts initiated downloads, not verified completed transfers.
+    The caller must authorize the request and retrieve a published
+    material before calling this function.
+    """
+    if not material.file:
+        raise ValueError("This material has no file available.")
+
+    file_handle = material.file.open("rb")
+
+    try:
+        MaterialDownload.objects.create(
+            material=material,
+            user=user,
+        )
+
+        return FileResponse(
+            file_handle,
+            as_attachment=True,
+            filename=material.file.name.split("/")[-1],
+        )
+    except Exception:
+        file_handle.close()
+        raise
 
 
 @transaction.atomic
@@ -172,3 +203,33 @@ def reject_material(*, material_id, reviewer, reason):
     )
 
     return material
+
+
+def download_material(*, material, user):
+    """
+    Record an authorized download request and return the file response.
+
+    This counts initiated downloads, not verified completed transfers.
+    The caller must authorize the request and retrieve a published
+    material before calling this function.
+    """
+    if not material.file:
+        raise ValueError("This material has no file available.")
+
+    file_handle = material.file.open("rb")
+
+    try:
+        MaterialDownload.objects.create(
+            material=material,
+            user=user,
+        )
+
+        return FileResponse(
+            file_handle,
+            as_attachment=True,
+            filename=material.file.name.split("/")[-1],
+        )
+    except Exception:
+        file_handle.close()
+        raise
+

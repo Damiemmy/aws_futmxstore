@@ -2,6 +2,9 @@ from django.shortcuts import render
 from rest_framework.generics import ListAPIView,CreateAPIView
 from .models import Course,Material
 from rest_framework.views import APIView
+from apps.dashboard.models import Activity
+from rest_framework.exceptions import NotFound, ValidationError
+from apps.dashboard.services import log_activity
 from .serializers import (
     FacultySerializer,
     DepartmentSerializer,
@@ -120,6 +123,14 @@ class CourseCreateView(CreateAPIView):
             unit=serializer.validated_data["unit"],
             semester=serializer.validated_data["semester"],
         )
+        log_activity(
+            action=Activity.Action.COURSE_SUBMITTED,
+            description=f"Submitted course: {course.code}",
+            actor=self.request.user,
+            target_type="Course",
+            target_id=course.pk,
+            metadata={"status": course.status},
+        )
 
         serializer.instance = course
 
@@ -140,6 +151,17 @@ class MaterialCreateView(CreateAPIView):
             description=serializer.validated_data.get("description", ""),
             file=serializer.validated_data["file"],
             uploaded_by=self.request.user,
+        )
+        log_activity(
+            action=Activity.Action.MATERIAL_UPLOADED,
+            description=f"Submitted material: {material.title}",
+            actor=self.request.user,
+            target_type="Material",
+            target_id=material.pk,
+            metadata={
+                "course_code": material.course.code,
+                "status": material.status,
+            },
         )
         serializer.instance = material
 
@@ -206,8 +228,28 @@ class MaterialDownloadView(APIView):
         if material is None:
             raise NotFound("Material not found.")
 
-        return download_material(material)
+        response = download_material(
+            material=material,
+            user=request.user,
+        )
 
+        log_activity(
+            action=Activity.Action.MATERIAL_DOWNLOADED,
+            description=f"Downloaded material: {material.title}",
+            actor=request.user,
+            target_type="Material",
+            target_id=material.pk,
+            metadata={
+                "course_code": material.course.code,
+                "academic_session": (
+                    material.course_offering.academic_session.name
+                    if material.course_offering
+                    else None
+                ),
+            },
+        )
+
+        return response
 
 class CourseOfferingListView(ListAPIView):
 
@@ -245,6 +287,7 @@ class PendingMaterialListView(ListAPIView):
     def get_queryset(self):
         return get_pending_materials()
 
+'''
 class ReviewActionView(APIView):
     permission_classes = [
         IsAuthenticated,
@@ -287,6 +330,86 @@ class ReviewActionView(APIView):
             "id": result.pk,
             "status": result.status,
         }, status=status.HTTP_200_OK)
+'''
+
+
+
+
+class ReviewActionView(APIView):
+    permission_classes = [
+        IsAuthenticated,
+        CanReviewAcademicContent,
+    ]
+
+    model = None
+    approve_service = None
+    reject_service = None
+    id_field = None
+
+    def post(self, request, pk, action):
+        if action not in {"approve", "reject"}:
+            raise NotFound("Review action not found.")
+
+        if not self.model.objects.filter(pk=pk).exists():
+            raise NotFound("Submission not found.")
+
+        # Step 1: Execute the appropriate review service.
+        if action == "approve":
+            result = self.approve_service(
+                **{self.id_field: pk},
+                reviewer=request.user,
+            )
+        else:
+            reason = request.data.get("rejection_reason", "").strip()
+
+            if not reason:
+                raise ValidationError({
+                    "rejection_reason": "A rejection reason is required."
+                })
+
+            result = self.reject_service(
+                **{self.id_field: pk},
+                reviewer=request.user,
+                reason=reason,
+            )
+
+        # Step 2: Determine which activity occurred.
+        if isinstance(result, Course):
+            activity_action = (
+                Activity.Action.COURSE_APPROVED
+                if action == "approve"
+                else Activity.Action.COURSE_REJECTED
+            )
+            target_type = "Course"
+        else:
+            activity_action = (
+                Activity.Action.MATERIAL_APPROVED
+                if action == "approve"
+                else Activity.Action.MATERIAL_REJECTED
+            )
+            target_type = "Material"
+
+        # Step 3: Record the activity.
+        log_activity(
+            action=activity_action,
+            description=f"{target_type} {result.pk} {result.status}",
+            actor=request.user,
+            target_type=target_type,
+            target_id=result.pk,
+            metadata={
+                "status": result.status,
+            },
+        )
+
+        # Step 4: Return the API response.
+        return Response({
+            "detail": f"Submission {result.status}.",
+            "id": result.pk,
+            "status": result.status,
+        }, status=status.HTTP_200_OK)
+
+
+
 
 class CourseReviewView(ReviewActionView):
     model = Course

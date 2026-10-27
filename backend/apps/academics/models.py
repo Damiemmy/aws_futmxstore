@@ -419,3 +419,47 @@ class MaterialRequest(Material):
         proxy = True
         verbose_name = "Material request"
         verbose_name_plural = "Material requests"
+
+
+
+class MaterialDownload(models.Model):
+    """
+    Records each authorized material download request.
+    One record represents one initiated download.
+    """
+
+    material = models.ForeignKey(
+        Material,
+        on_delete=models.PROTECT,
+        related_name="download_events",
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="material_downloads",
+    )
+
+    downloaded_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+    )
+
+    class Meta:
+        ordering = ["-downloaded_at"]
+        indexes = [
+            models.Index(
+                fields=["material", "downloaded_at"],
+                name="mat_dl_material_date_idx",
+            ),
+            models.Index(
+                fields=["user", "downloaded_at"],
+                name="mat_dl_user_date_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Download: {self.material.title}"
+

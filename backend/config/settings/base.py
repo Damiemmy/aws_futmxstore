@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'apps.authentication',
     'apps.users',
     'apps.academics',
+    'apps.dashboard',
+    'apps.ai_assistant',
     'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
