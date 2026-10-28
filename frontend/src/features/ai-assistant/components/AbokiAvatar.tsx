@@ -1,4 +1,4 @@
-import { AbokiPose } from "../types"
+import { AbokiPose } from '../types'
 
 interface AbokiAvatarProps {
   size?: 'sm' | 'md' | 'lg'
