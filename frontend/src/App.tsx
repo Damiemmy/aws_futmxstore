@@ -9,6 +9,9 @@ import { UploadMaterial } from './pages/UploadMaterial'
 import { AddCourse } from './pages/AddCourse'
 import { Toaster } from 'sonner'
 
+///AI Domain
+import { Aboki } from './pages/Aboki'
+
 export function App() {
   return (
     <>
@@ -40,6 +43,7 @@ export function App() {
           <Route path="/upload" element={<Upload />} />
           <Route path="/upload/material" element={<UploadMaterial />} />
           <Route path="/upload/course" element={<AddCourse />} />
+          <Route path="/aboki" element={<Aboki />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

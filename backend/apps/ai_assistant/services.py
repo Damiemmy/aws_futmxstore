@@ -1,4 +1,11 @@
+#------------------ OCR IMPORT START------------------------
 import hashlib
+from io import BytesIO
+
+import pytesseract
+from PIL import Image
+#------------------ OCR IMPORT END--------------------------
+
 
 # import fitz
 import pymupdf
@@ -17,7 +24,7 @@ from apps.academics.models import Course, Material
 CHUNK_SIZE = 180
 CHUNK_OVERLAP = 30
 
-
+'''
 def extract_pdf_pages(pdf_bytes: bytes) -> list[dict]:
     """Extract text from a PDF while preserving page numbers."""
     pages = []
@@ -33,6 +40,59 @@ def extract_pdf_pages(pdf_bytes: bytes) -> list[dict]:
                 })
 
     return pages
+'''
+
+
+def extract_pdf_pages(pdf_bytes: bytes) -> list[dict]:
+    """
+    Extract PDF text with PyMuPDF and use OCR when a page
+    contains too little extractable text.
+
+    Raises OCR or PDF-processing errors rather than silently
+    treating a processing failure as an empty document.
+    """
+    pages = []
+
+    with pymupdf.open(stream=pdf_bytes, filetype="pdf") as pdf:
+        for page_number, page in enumerate(pdf, start=1):
+            native_text = page.get_text("text").strip()
+
+            # Native text is preferred when it contains enough content.
+            if len(native_text.split()) >= 5:
+                text = native_text
+                extraction_method = "native"
+            else:
+                # Render the page as an image for OCR.
+                pixmap = page.get_pixmap(
+                    dpi=220,
+                    alpha=False,
+                )
+
+                image_bytes = pixmap.tobytes("png")
+
+                with Image.open(BytesIO(image_bytes)) as image:
+                    ocr_text = pytesseract.image_to_string(
+                        image,
+                        lang="eng",
+                    ).strip()
+
+                # Preserve native text if OCR produces no useful result.
+                if len(ocr_text.split()) > len(native_text.split()):
+                    text = ocr_text
+                    extraction_method = "ocr"
+                else:
+                    text = native_text
+                    extraction_method = "native"
+
+            if text.strip():
+                pages.append({
+                    "page_number": page_number,
+                    "text": text,
+                    "extraction_method": extraction_method,
+                })
+
+    return pages
+
 
 
 def chunk_page(
@@ -117,11 +177,21 @@ def index_material(material_id: int) -> dict:
     pages = extract_pdf_pages(pdf_bytes)
     records = build_chunk_records(pages, file_hash)
 
+    # if not records:
+    #     # The current PDF has no extractable text. Clear stale chunks
+    #     # so an older version of the document is not returned.
+    #     with transaction.atomic():
+    #         MaterialChunk.objects.filter(material_id=material_id).delete()
     if not records:
-        # The current PDF has no extractable text. Clear stale chunks
-        # so an older version of the document is not returned.
-        with transaction.atomic():
-            MaterialChunk.objects.filter(material_id=material_id).delete()
+        return {
+            "material_id": material_id,
+            "status": "no_extractable_text",
+            "reason": (
+                "Neither native extraction nor OCR recovered usable text. "
+                "Existing chunks were preserved."
+            ),
+            "chunks_indexed": 0,
+        }
 
         return {
             "material_id": material_id,
