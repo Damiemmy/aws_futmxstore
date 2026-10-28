@@ -20,7 +20,8 @@ import {
 import { useAuthStore } from '../../../store/auth'
 
 import { useAbokiChat } from '../hooks/useAbokiChat'
-import { AbokiAvatar, type AbokiPose } from './AbokiAvatar'
+import { AbokiAvatar} from './AbokiAvatar'
+import { AbokiPose } from '../types'
 import { ChatMessage } from './ChatMessage'
 import { AcademicSearchPanel } from './AcademicSearchPanel'
 
