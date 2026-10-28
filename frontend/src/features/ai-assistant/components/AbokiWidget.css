@@ -1,0 +1,299 @@
+/* =========================================================
+   ABOKI AVATAR
+   ========================================================= */
+
+.aboki-avatar {
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  overflow: visible;
+  transform-origin: center bottom;
+}
+
+.aboki-avatar-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  transform-origin: center bottom;
+  will-change: transform;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Normal idle breathing */
+.aboki-avatar--idle .aboki-avatar-image {
+  animation: aboki-idle-breathe 3.2s ease-in-out infinite;
+}
+
+/* A friendly greeting */
+.aboki-avatar--waving .aboki-avatar-image {
+  animation: aboki-wave 2.2s ease-in-out infinite;
+}
+
+/* Waiting for an answer */
+.aboki-avatar--thinking .aboki-avatar-image {
+  animation: aboki-thinking 1.5s ease-in-out infinite;
+}
+
+/* Delivering an explanation */
+.aboki-avatar--explaining .aboki-avatar-image {
+  animation: aboki-explain 2.4s ease-in-out infinite;
+}
+
+/* Reading academic resources */
+.aboki-avatar--reading .aboki-avatar-image,
+.aboki-avatar--studying .aboki-avatar-image,
+.aboki-avatar--books .aboki-avatar-image {
+  animation: aboki-read 2.8s ease-in-out infinite;
+}
+
+/* Celebrating a success */
+.aboki-avatar--celebrating .aboki-avatar-image {
+  animation: aboki-celebrate 1.2s ease-in-out infinite;
+}
+
+/* Encouraging the student */
+.aboki-avatar--encouraging .aboki-avatar-image,
+.aboki-avatar--happy .aboki-avatar-image {
+  animation: aboki-encourage 2s ease-in-out infinite;
+}
+
+/* Pointing toward useful information */
+.aboki-avatar--pointing .aboki-avatar-image {
+  animation: aboki-point 2.5s ease-in-out infinite;
+}
+
+/* Responding with concern */
+.aboki-avatar--concerned .aboki-avatar-image {
+  animation: aboki-concern 2.5s ease-in-out infinite;
+}
+
+/* Friendly goodbye */
+.aboki-avatar--goodbye .aboki-avatar-image {
+  animation: aboki-wave 2.2s ease-in-out infinite;
+}
+
+/* =========================================================
+   AVATAR ANIMATION KEYFRAMES
+   Keep the movement gentle to avoid distracting students.
+   ========================================================= */
+
+@keyframes aboki-idle-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-2px) scale(1.015);
+  }
+}
+
+@keyframes aboki-wave {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+
+  25% {
+    transform: rotate(-3deg) translateY(-2px);
+  }
+
+  50% {
+    transform: rotate(2deg) translateY(0);
+  }
+
+  75% {
+    transform: rotate(-2deg) translateY(-1px);
+  }
+}
+
+@keyframes aboki-thinking {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  35% {
+    transform: translateY(-2px) rotate(-2deg);
+  }
+
+  65% {
+    transform: translateY(0) rotate(2deg);
+  }
+}
+
+@keyframes aboki-explain {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  30% {
+    transform: translateY(-2px) rotate(-1.5deg);
+  }
+
+  65% {
+    transform: translateY(0) rotate(1.5deg);
+  }
+}
+
+@keyframes aboki-read {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-1.5px) rotate(-1deg);
+  }
+}
+
+@keyframes aboki-celebrate {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+
+  25% {
+    transform: translateY(-4px) rotate(-3deg) scale(1.025);
+  }
+
+  50% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+
+  75% {
+    transform: translateY(-2px) rotate(3deg) scale(1.015);
+  }
+}
+
+@keyframes aboki-encourage {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+@keyframes aboki-point {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-2px) rotate(1deg);
+  }
+}
+
+@keyframes aboki-concern {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(1px) rotate(-1deg);
+  }
+}
+
+/* =========================================================
+   FLOATING WIDGET
+   ========================================================= */
+
+.aboki-widget-root {
+  position: relative;
+  z-index: 100;
+}
+
+/* Smooth entrance when the chat panel opens */
+.aboki-widget-panel {
+  transform-origin: bottom right;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  animation: aboki-panel-enter 220ms ease-out both;
+}
+
+@keyframes aboki-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   TYPING INDICATOR
+   ========================================================= */
+
+.aboki-typing-dot {
+  opacity: 0.35;
+  animation: aboki-typing 1.2s ease-in-out infinite;
+}
+
+.aboki-typing-dot:nth-child(2) {
+  animation-delay: 160ms;
+}
+
+.aboki-typing-dot:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+@keyframes aboki-typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* =========================================================
+   MOBILE AND TOUCH BEHAVIOUR
+   ========================================================= */
+
+@media (max-width: 639px) {
+  .aboki-widget-panel {
+    overscroll-behavior-y: contain;
+  }
+
+  .aboki-widget-panel textarea {
+    font-size: 16px;
+  }
+
+  .aboki-float-launcher {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY: REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .aboki-avatar-image,
+  .aboki-typing-dot,
+  .aboki-widget-panel {
+    animation: none !important;
+  }
+
+  .aboki-float-launcher {
+    transition: none !important;
+  }
+}

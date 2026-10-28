@@ -66,3 +66,19 @@ export interface ChatMessageData {
   sources?: AbokiSource[]
   status?: AbokiStatus
 }
+
+
+export type AbokiPose =
+  | 'idle'
+  | 'waving'
+  | 'thinking'
+  | 'celebrating'
+  | 'explaining'
+  | 'reading'
+  | 'pointing'
+  | 'happy'
+  | 'encouraging'
+  | 'concerned'
+  | 'studying'
+  | 'books'
+  | 'goodbye'

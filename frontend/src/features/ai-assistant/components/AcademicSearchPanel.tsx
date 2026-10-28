@@ -1,17 +1,18 @@
-
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import {
   BookOpen,
-  ExternalLink,
   FileText,
   LoaderCircle,
   Search,
   Sparkles,
 } from 'lucide-react'
+
 import {
   searchAcademicMaterials,
   summarizeMaterial,
 } from '../services'
+
 import type {
   MaterialSummaryResult,
   RetrievedChunk,
@@ -23,10 +24,15 @@ export function AcademicSearchPanel() {
   const [hasSearched, setHasSearched] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
-  const [summarizingId, setSummarizingId] = useState<number | null>(null)
+
+  const [summarizingId, setSummarizingId] = useState<number | null>(
+    null,
+  )
+
   const [summaries, setSummaries] = useState<
     Record<number, MaterialSummaryResult>
   >({})
+
   const [summaryErrors, setSummaryErrors] = useState<
     Record<number, string>
   >({})
@@ -35,6 +41,7 @@ export function AcademicSearchPanel() {
     event.preventDefault()
 
     const cleanedQuery = query.trim()
+
     if (!cleanedQuery || isSearching) return
 
     setIsSearching(true)
@@ -63,6 +70,7 @@ export function AcademicSearchPanel() {
     if (summarizingId !== null) return
 
     setSummarizingId(materialId)
+
     setSummaryErrors((current) => {
       const next = { ...current }
       delete next[materialId]
@@ -92,10 +100,12 @@ export function AcademicSearchPanel() {
       <div>
         <div className="mb-2 flex items-center gap-2">
           <Search className="h-5 w-5 text-coral" />
+
           <h2 className="font-display text-xl font-bold text-ink">
             Search study materials
           </h2>
         </div>
+
         <p className="text-sm leading-6 text-ink/60">
           Search the indexed academic resources and explore the
           passages most relevant to your question.
@@ -105,6 +115,7 @@ export function AcademicSearchPanel() {
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-ink/10 bg-white px-3 focus-within:border-coral/50 focus-within:ring-2 focus-within:ring-coral/10">
           <Search className="h-4 w-4 shrink-0 text-ink/40" />
+
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -125,6 +136,7 @@ export function AcademicSearchPanel() {
           ) : (
             <Search className="h-4 w-4" />
           )}
+
           <span className="hidden sm:inline">Search</span>
         </button>
       </form>
@@ -136,7 +148,10 @@ export function AcademicSearchPanel() {
       )}
 
       {isSearching && (
-        <div className="flex items-center gap-3 rounded-xl bg-white p-5 text-sm text-ink/60">
+        <div
+          role="status"
+          className="flex items-center gap-3 rounded-xl bg-white p-5 text-sm text-ink/60"
+        >
           <LoaderCircle className="h-5 w-5 animate-spin text-coral" />
           Searching indexed materials...
         </div>
@@ -145,9 +160,11 @@ export function AcademicSearchPanel() {
       {hasSearched && !isSearching && results.length === 0 && (
         <div className="rounded-2xl border border-dashed border-ink/15 bg-white/60 px-5 py-10 text-center">
           <BookOpen className="mx-auto mb-3 h-8 w-8 text-ink/30" />
+
           <h3 className="font-semibold text-ink">
             No matching passages found
           </h3>
+
           <p className="mt-2 text-sm leading-6 text-ink/55">
             Try different keywords or ask a more specific question.
             Only indexed materials can appear in these results.
@@ -164,6 +181,7 @@ export function AcademicSearchPanel() {
 
           {results.map((result) => {
             const summary = summaries[result.material_id]
+
             const isSummarizing =
               summarizingId === result.material_id
 
@@ -181,6 +199,7 @@ export function AcademicSearchPanel() {
                     <h3 className="font-semibold leading-6 text-ink">
                       {result.material_title}
                     </h3>
+
                     <p className="mt-1 text-xs text-ink/55">
                       {result.course_code} · Page {result.page_number}
                     </p>
@@ -192,17 +211,14 @@ export function AcademicSearchPanel() {
                 </p>
 
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-ink/5 pt-3">
-                  {result.material_url && (
-                    <a
-                      href={result.material_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink/70 hover:text-coral"
-                    >
-                      Open material
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
+                  <Link
+                    to={`/materials/${result.material_id}`}
+                    aria-label={`View material: ${result.material_title}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink/70 transition hover:text-coral"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" />
+                    View material
+                  </Link>
 
                   <button
                     type="button"
@@ -210,19 +226,25 @@ export function AcademicSearchPanel() {
                       handleSummarize(result.material_id)
                     }
                     disabled={summarizingId !== null}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-coral/10 px-3 py-2 text-xs font-semibold text-coral transition hover:bg-coral/15 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-coral/10 px-3 py-2 text-xs font-semibold text-coral transition hover:bg-coral/15 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isSummarizing ? (
                       <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
                     ) : (
                       <Sparkles className="h-3.5 w-3.5" />
                     )}
-                    Summarize material
+
+                    {isSummarizing
+                      ? 'Summarizing...'
+                      : 'Summarize material'}
                   </button>
                 </div>
 
                 {summaryErrors[result.material_id] && (
-                  <p role="alert" className="mt-3 text-sm text-red-600">
+                  <p
+                    role="alert"
+                    className="mt-3 text-sm text-red-600"
+                  >
                     {summaryErrors[result.material_id]}
                   </p>
                 )}
@@ -233,16 +255,20 @@ export function AcademicSearchPanel() {
                       <>
                         <div className="mb-2 flex items-center gap-2">
                           <Sparkles className="h-4 w-4 text-coral" />
+
                           <h4 className="font-semibold text-ink">
                             Summary: {summary.title}
                           </h4>
                         </div>
-                        <p className="whitespace-pre-wrap text-sm leading-7 text-ink/75">
+
+                        <p className="whitespace-pre-wrap break-words text-sm leading-7 text-ink/75">
                           {summary.summary}
                         </p>
+
                         <p className="mt-3 text-xs text-ink/45">
                           {summary.pages_processed} page
-                          {summary.pages_processed === 1 ? '' : 's'} processed
+                          {summary.pages_processed === 1 ? '' : 's'}{' '}
+                          processed
                         </p>
                       </>
                     ) : (

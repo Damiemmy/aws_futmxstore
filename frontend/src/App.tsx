@@ -8,6 +8,7 @@ import { Upload } from './pages/Upload'
 import { UploadMaterial } from './pages/UploadMaterial'
 import { AddCourse } from './pages/AddCourse'
 import { Toaster } from 'sonner'
+import { AbokiWidget } from './features/ai-assistant/components/AbokiWidget'
 
 ///AI Domain
 import { Aboki } from './pages/Aboki'
@@ -47,6 +48,7 @@ export function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <AbokiWidget />
     </>
   )
 }
